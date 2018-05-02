@@ -8,7 +8,6 @@ public class MainMenu extends JFrame implements ActionListener {
     public MainMenu() {
         super("Puzzle");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        //getContentPane().setLayout(new BorderLayout());
         SpringLayout layout = new SpringLayout();
         getContentPane().setLayout(layout);
         //Puzzelito Label
@@ -56,6 +55,7 @@ public class MainMenu extends JFrame implements ActionListener {
     }
 
     public void openGame() {
-        PuzzleGame pzlGame = new PuzzleGame();
+        this.dispose();
+        ChooseGame pzlGame = new ChooseGame();
     }
 }
