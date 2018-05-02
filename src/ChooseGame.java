@@ -38,7 +38,6 @@ public class ChooseGame extends JFrame implements ActionListener {
         getContentPane().add(batmanBtn);
         getContentPane().add(sonicBtn);
         getContentPane().add(avengersBtn);
-
         //Locating nLbl
         layout.putConstraint(SpringLayout.NORTH, nLbl, 20, SpringLayout.NORTH, getContentPane());
         layout.putConstraint(SpringLayout.WEST, nLbl, 130, SpringLayout.WEST, getContentPane());
