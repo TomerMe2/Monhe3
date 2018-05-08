@@ -65,35 +65,82 @@ public class PuzzleGame extends JFrame implements ActionListener{
     }
 
     private void movePicture(Directions dir, int i, int j) {
-        JButton temp = _btns[i][j];
+        JButton tempBtn = _btns[i][j];
+        GameImage tempImg = _images[i][j];
         if (dir == Directions.UP) {
+            //Replace buttons
             _btns[i][j] = _btns[i-1][j];
-            _btns[i-1][j] = temp;
-            int pad = i-1 * (_singleImgSize + _blockMargin) + _padFromBorders;
-            //getContentPane().remove(_btns[i-1][j]);
-            _layout.putConstraint(SpringLayout.NORTH, _btns[i-1][j], pad, SpringLayout.NORTH, getContentPane());
-            //getContentPane().add(_btns[i-1][j]);
+            _btns[i-1][j] = tempBtn;
+            //Replace Images
+            _images[i][j] = _images[i-1][j];
+            _images[i-1][j] = tempImg;
+            int pad = (i-1) * (_singleImgSize + _blockMargin) + _padFromBorders;
+            _btns[i-1][j].setLocation(_btns[i-1][j].getX(), pad);
+            //now the empty image is in i,j so we will update it's neighbours
+            setNeighboursToThisEmptyImage(i,j);
+            //now in i-1,j there's a not empty image
+            setNeighboursToThisNotEmptyImage(i-1,j);
         }
         if (dir == Directions.DOWN) {
+            //Replace buttons
             _btns[i][j] = _btns[i+1][j];
-            _btns[i+1][j] = temp;
-            int pad = i+1 * (_singleImgSize + _blockMargin) + _padFromBorders;
-            _layout.putConstraint(SpringLayout.NORTH, _btns[i+1][j], pad, SpringLayout.NORTH, getContentPane());
+            _btns[i+1][j] = tempBtn;
+            //Replace Images
+            _images[i][j] = _images[i+1][j];
+            _images[i+1][j] = tempImg;
+            int pad = (i+1) * (_singleImgSize + _blockMargin) + _padFromBorders;
+            //TODO: THIS SET LOCATION WON'T WORK
+            _btns[i][j].setLocation(_btns[i+1][j].getX(), 0);
+            //now the empty image is in i,j so we will update it's neighbours
+            setNeighboursToThisEmptyImage(i,j);
+            //now in i+1,j there's a not empty image
+            setNeighboursToThisNotEmptyImage(i+1,j);
         }
         if (dir == Directions.LEFT) {
             _btns[i][j] = _btns[i][j-1];
-            _btns[i][j-1] = temp;
-            int pad = j-1 * (_singleImgSize + _blockMargin) + _padFromBorders;
+            _btns[i][j-1] = tempBtn;
+            int pad = (j-1) * (_singleImgSize + _blockMargin) + _padFromBorders;
             _layout.putConstraint(SpringLayout.NORTH, _btns[i+1][j], pad, SpringLayout.NORTH, getContentPane());
         }
         if (dir == Directions.RIGHT) {
             _btns[i][j] = _btns[i][j+1];
-            _btns[i][j+1] = temp;
-            int pad = j+1 * (_singleImgSize + _blockMargin) + _padFromBorders;
+            _btns[i][j+1] = tempBtn;
+            int pad = (j+1) * (_singleImgSize + _blockMargin) + _padFromBorders;
             _layout.putConstraint(SpringLayout.NORTH, _btns[i+1][j], pad, SpringLayout.NORTH, getContentPane());
         }
     }
 
+    //The image at i,j is not empty
+    private void setNeighboursToThisNotEmptyImage(int i, int j) {
+        if (i-1 >= 0) {
+            _images[i-1][j].setEmptyImgDir(Directions.NONE);
+        }
+        if (i+1 < _n) {
+            _images[i+1][j].setEmptyImgDir(Directions.NONE);
+        }
+        if (j-1 >= 0) {
+            _images[i][j-1].setEmptyImgDir(Directions.NONE);
+        }
+        if (j+1 < _n) {
+            _images[i][j+1].setEmptyImgDir(Directions.NONE);
+        }
+    }
+
+    //The empty image is at i,j
+    private void setNeighboursToThisEmptyImage(int i, int j) {
+        if (i-1 >= 0) {
+            _images[i-1][j].setEmptyImgDir(Directions.DOWN);
+        }
+        if (i+1 < _n) {
+            _images[i+1][j].setEmptyImgDir(Directions.UP);
+        }
+        if (j-1 >= 0) {
+            _images[i][j-1].setEmptyImgDir(Directions.RIGHT);
+        }
+        if (j+1 < _n) {
+            _images[i][j+1].setEmptyImgDir(Directions.LEFT);
+        }
+    }
     private void cropImage(URL absolutePathURL) {
         _images = new GameImage[_n][_n];
         Image img = null;
@@ -111,30 +158,20 @@ public class PuzzleGame extends JFrame implements ActionListener{
         int counter = 0;
         Random rand = new Random();
         int notInGameIndex = rand.nextInt(_n*_n);
+        int iEmptyImg = 0, jEmptyImg = 0;   //default init, this value will surely change
         //TODO: MAKE SOMETHING FROM A PIC NOT IN GAME
         for (int i=0; i<_n; i++) {
             for (int j=0; j<_n; j++) {
                 BufferedImage cropped = fullBfrd.getSubimage(j*_singleImgSize, i*_singleImgSize,
                         _singleImgSize, _singleImgSize);
                 Directions blankImgDir = Directions.NONE;   //Insert default value
-                //Check if the notInGame Image is near this image
-                if (notInGameIndex == counter+1 & j+1 < _n) {
-                    blankImgDir = Directions.RIGHT;
-                }
-                else if (notInGameIndex == counter-1 & j-1 >= 0) {
-                    blankImgDir = Directions.LEFT;
-                }
-                else if (notInGameIndex == counter + _n & i+1 < _n) {
-                    blankImgDir = Directions.DOWN;
-                }
-                else if (notInGameIndex == counter - _n & i-1 >= 0) {
-                    blankImgDir = Directions.UP;
-                }
                 GameImage gameImg = new GameImage(cropped, counter, blankImgDir);
                 _images[i][j] = gameImg;
                 //Pick our missing piece
                 if (notInGameIndex == counter) {
                     _images[i][j].setIsInGame(false);
+                    iEmptyImg = i;
+                    jEmptyImg = j;
                 }
                 else {
                     _images[i][j].setIsInGame(true);
@@ -142,6 +179,7 @@ public class PuzzleGame extends JFrame implements ActionListener{
                 counter++;
             }
         }
+        setNeighboursToThisEmptyImage(iEmptyImg, jEmptyImg);
     }
 
     //We want the size closest to prefSize, but divideable by _n

@@ -34,4 +34,8 @@ public class GameImage {
     public void setIsInGame (boolean isInGame) {
         _isInGame = isInGame;
     }
+
+    public void setEmptyImgDir(Directions dir) {
+        _emptyImgDir = dir;
+    }
 }
