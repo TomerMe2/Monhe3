@@ -1,14 +1,21 @@
+import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class GameImage {
+public class GameBlock extends JButton {
     BufferedImage _bfrdImg;
     boolean _isInGame;
     int _index;
     Directions _emptyImgDir;
-    public GameImage(BufferedImage bfrdImg, int index, Directions emptyImgDirection) {
+
+    public GameBlock(BufferedImage bfrdImg, int index) {
+        super();
         _bfrdImg = bfrdImg;
         _index = index;
-        _emptyImgDir = emptyImgDirection;
+        _isInGame = true;
+        _emptyImgDir = Directions.NONE;
+        setIcon(new ImageIcon(bfrdImg));
+        makeButtonCoolLooking();
     }
 
     public int getIndex() {
@@ -37,5 +44,14 @@ public class GameImage {
 
     public void setEmptyImgDir(Directions dir) {
         _emptyImgDir = dir;
+    }
+
+    //Makes the button look like an image
+    private void makeButtonCoolLooking() {
+        setFocusPainted(false);
+        setMargin(new Insets(0, 0, 0, 0));
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setOpaque(false);
     }
 }
