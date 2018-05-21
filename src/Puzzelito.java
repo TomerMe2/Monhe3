@@ -4,18 +4,16 @@ import javax.swing.JFrame;
 
 public class Puzzelito extends JFrame implements ActionListener {
 
-    private MainMenu main;
+    private MainMenu _main;
 
     public Puzzelito() {
         super("Puzzle");
-        main = new MainMenu();
+        _main = new MainMenu();
 
     }
     public void actionPerformed(ActionEvent e) {
 
     }
 
-    public static void main(String args[]) {
-        Puzzelito gm = new Puzzelito();
-    }
+
 }

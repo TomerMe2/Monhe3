@@ -1,4 +1,4 @@
-import jdk.nashorn.internal.scripts.JO;
+import net.miginfocom.swing.MigLayout;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -27,44 +27,44 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
     private Stack<Move> _moves;
     private int _moveCounter;
     private JLabel _moveCounterLbl;
-    private Image _background;
-    private SpringLayout _layout;
+    private MigLayout _layout;
+    private Timer _timr;
+    private JLabel _timerLbl;
     private static final int _SHUFFLE_TIMES = 100;
+    private int _seconds;
+    private int _minutes;
 
-    public PuzzleGame(int n, URL imagePathURL) {
+    public PuzzleGame(int n, URL imagePathURL, int[][] blockPermotation) {
         super("Puzzelito");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        _layout = new SpringLayout();
+        _layout = new MigLayout();
         getContentPane().setLayout(_layout);
         _n = n;
         detSize();
         buildBlocks(imagePathURL);
-        _background = null;
-        try {
-            _background = ImageIO.read(getClass().getResource("\\Images\\" + _backgroundPath));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        int backgroundSize = (_n)*(_singleImgSize + _blockMargin);
-        double backgroundProportion = backgroundSize/_backgrndItselfPixels;
-        _padFromBorders = (int) Math.round(_backgrndBorderPixels*backgroundProportion);
-        _background = _background.getScaledInstance(backgroundSize + 2*_padFromBorders
-                , backgroundSize + 2*_padFromBorders, Image.SCALE_DEFAULT);
-        //make the move count label
+        Image background = getBkrngImg();
         _moves = new Stack<>();
         _moveCounter = 0;
         _moveCounterLbl = new JLabel("Moves: " + _moveCounter);
         _moveCounterLbl.setFont(new Font(_moveCounterLbl.getFont().getName(), _moveCounterLbl.getFont().getStyle(), 30));
-        _moveCounterLbl.setLocation(0,0);
-        //makeButtons();
-        shuffle();
+        if (blockPermotation == null) {
+            shuffle();
+        }
+        else {
+           handleCSVBoard(blockPermotation);
+        }
         placeButtons();
         placeDirectionsForEmptyImg();
-        getContentPane().add(_moveCounterLbl);
-        getContentPane().add(new JLabel(new ImageIcon(_background)));
-        this.setSize(_background.getWidth(this) + _padFromBorders,
-                _background.getHeight(this) + 2*_padFromBorders);
+        //Small Buttons
+        addSmallBtn("Undo", 310, 0);
+        addSmallBtn("Main Menu", 160, 0);
+        addSmallBtn("Choose Menu", 390, 0);
+        timerOperation();
+        _timr.start();
+        add(_moveCounterLbl, "pos 0px 0px");
+        add(new JLabel(new ImageIcon(background)), "pos 0px 0px");
+        this.setSize(background.getWidth(this) + _padFromBorders,
+                background.getHeight(this) + 2*_padFromBorders);
         this.setResizable(false);
         this.setVisible(true);
         this.setFocusable(true);
@@ -78,7 +78,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
                     if (_blocks[i][j].getEmptyImgDirection() != Directions.NONE) {
                         //An image with a blank space near it was clicked
                         //We need to move the image to the blank space
-                        movePicture(_blocks[i][j].getEmptyImgDirection(), i, j);
+                        movePicture(_blocks[i][j].getEmptyImgDirection(), i, j, false);
                         if (isThereWin()) {
                             win();
                         }
@@ -86,8 +86,105 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
                 }
             }
         }
+        if (e.getActionCommand().equals("Undo")) {
+            if (!_moves.isEmpty()) {
+                Move last = _moves.pop();
+                moveBlockBySpecificBlock(last.getOpossiteDir(), last.getBlock(), true);
+            }
+        }
+        if (e.getActionCommand().equals("Choose Menu")) {
+            new ChooseGame();
+            dispose();
+        }
+        if (e.getActionCommand().equals("Main Menu")) {
+            new MainMenu();
+            dispose();
+        }
     }
 
+    private void timerOperation() {
+        //Create the Label
+        _timerLbl = new JLabel("0:0");
+        _timerLbl.setFont(new Font(_timerLbl.getFont().getName(), _timerLbl.getFont().getStyle(), 30));
+        add(_timerLbl, "pos 600px 0px");
+        _seconds = 0;
+        _minutes = 0;
+        //Timer itself
+        _timr = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _seconds++;
+                if (_seconds == 60) {
+                    _seconds = 0;
+                    _minutes++;
+                }
+                _timerLbl.setText(_minutes + ":" + _seconds);
+            }
+        });
+    }
+
+    private void handleCSVBoard(int[][] locations) {
+        GameBlock[][] tempBlocks = new GameBlock[_n][_n];
+        for (int i=0; i<_n; i++) {
+            for (int j=0; j<_n; j++) {
+                tempBlocks[i][j] = locateBlockGivenIndex(locations[i][j]);
+            }
+        }
+        _blocks = tempBlocks;
+    }
+
+    private GameBlock locateBlockGivenIndex(int index) {
+        for (int i=0; i<_n; i++) {
+            for (int j=0; j<_n; j++) {
+                if (_blocks[i][j].getIndex() == index) {
+                    return _blocks[i][j];
+                }
+            }
+        }
+        return null;
+    }
+
+    private Image getBkrngImg() {
+        Image toReturn = null;
+        try {
+            toReturn = ImageIO.read(getClass().getResource("\\Images\\" + _backgroundPath));
+
+        }
+        catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "The program has encountered a critical problem " +
+                    "and will shut down");
+            System.exit(1);
+            return null; //will never execute
+        }
+        int backgroundSize = (_n)*(_singleImgSize + _blockMargin);
+        double backgroundProportion = backgroundSize/_backgrndItselfPixels;
+        _padFromBorders = (int) Math.round(_backgrndBorderPixels*backgroundProportion);
+        toReturn = toReturn.getScaledInstance(backgroundSize + 2*_padFromBorders
+                , backgroundSize + 2*_padFromBorders, Image.SCALE_DEFAULT);
+        return toReturn;
+    }
+
+    private void addSmallBtn(String text, int posX, int posY) {
+        MenuBtn btn = new MenuBtn(text);
+        btn.setFont(new Font(btn.getFont().getName(), btn.getFont().getStyle(), 25));
+        btn.setFocusable(false);
+        btn.addActionListener(this);
+        add(btn, "pos " + posX + "px " + posY + "px");
+    }
+
+    private void moveBlockBySpecificBlock(Directions dir, GameBlock blk, boolean isUndo) {
+        boolean isDone = false;
+        for (int i=0; i<_n; i++) {
+            for (int j=0; j<_n; j++) {
+                if (_blocks[i][j].equals(blk)) {
+                    if (!isDone) {
+                        movePicture(dir, i, j, isUndo);
+                        isDone = true;
+                    }
+                }
+            }
+        }
+    }
     //This method replace the image in i,j with an image in the given direction.
     //ONLY UP OR DOWN
     private void movePictureUpOrDown(Directions dir, int i, int j) {
@@ -104,7 +201,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         _blocks[i][j] = _blocks[iToReplaceWith][j];
         _blocks[iToReplaceWith][j] = temp;
         int pad = (iToReplaceWith) * (_singleImgSize + _blockMargin) + _padFromBorders;
-        _blocks[iToReplaceWith][j].setLocation(locX, pad);
+        _layout.setComponentConstraints(_blocks[iToReplaceWith][j], "pos " + locX + "px " + pad + "px");
         _blocks[iToReplaceWith][j].getModel().setArmed(false);
         //now the empty image is in i,j so we will update it's neighbours
         setNeighboursToThisEmptyImage(i,j);
@@ -127,7 +224,8 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         _blocks[i][j] = _blocks[i][jToReplaceWith];
         _blocks[i][jToReplaceWith] = temp;
         int pad = (jToReplaceWith) * (_singleImgSize + _blockMargin) + _padFromBorders;
-        _blocks[i][jToReplaceWith].setLocation(pad, locY);
+       // _blocks[i][jToReplaceWith].setLocation(pad, locY);
+        _layout.setComponentConstraints(_blocks[i][jToReplaceWith], "pos " + pad + "px " + locY + "px");
         _blocks[i][jToReplaceWith].getModel().setArmed(false);
         //now the empty image is in i,j so we will update it's neighbours
         setNeighboursToThisEmptyImage(i,j);
@@ -136,7 +234,14 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
     }
 
     //This method moves the picture at i,j to the empty location
-    private void movePicture(Directions dir, int i, int j) {
+    private void movePicture(Directions dir, int i, int j, boolean isUndo) {
+        //Count this move
+        if (!isUndo) {
+            _moveCounter++;
+            _moveCounterLbl.setText("Moves: " + _moveCounter);
+            //Add this move to the stack
+            _moves.push(new Move(dir, _blocks[i][j]));
+        }
         if (dir == Directions.UP) {
             movePictureUpOrDown(Directions.UP, i, j);
         }
@@ -149,12 +254,6 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         if (dir == Directions.RIGHT) {
             movePictureLeftOrRight(Directions.RIGHT, i, j);
         }
-        //Add the move to the moves stack
-        _moves.add(new Move(dir, _blocks[i][j]));
-        //Count this move
-        _moveCounter++;
-        //TODO: THIS WONT FKING WORK. TRY MIG LAYOUT MAYBE
-        //_moveCounterLbl.setText("Moves: " + _moveCounter);
     }
 
     //The image at i,j is not empty
@@ -195,8 +294,11 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         Image img = null;
         try {
             img = ImageIO.read(absolutePathURL);
-        } catch (IOException e) {
-            e.printStackTrace();
+        }
+        catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "The program has encountered a critical problem " +
+                    "and will shut down");
+            System.exit(1);
         }
         //scale the image to the size that we want
         img = img.getScaledInstance(_wholeImgSize, _wholeImgSize, Image.SCALE_DEFAULT);
@@ -209,7 +311,6 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         int counter = 0;
         Random rand = new Random();
         int notInGameIndex = rand.nextInt(_n*_n);
-        //TODO: MAKE SOMETHING FROM A PIC NOT IN GAME
         for (int i=0; i<_n; i++) {
             for (int j=0; j<_n; j++) {
                 BufferedImage cropped = fullBfrd.getSubimage(j*_singleImgSize, i*_singleImgSize,
@@ -252,7 +353,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         _singleImgSize = _wholeImgSize/_n;
     }
 
-    public void placeButtons() {
+    private void placeButtons() {
         for (int i=0; i<_n; i++) {
             for (int j=0; j<_n; j++) {
                 //Calculating the pads from north and west
@@ -260,9 +361,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
                 int padWest = j * (_singleImgSize + _blockMargin) + _padFromBorders;
                 if (_blocks[i][j].getIsInGame()) {
                     //Place the button
-                    getContentPane().add(_blocks[i][j]);
-                    _layout.putConstraint(SpringLayout.NORTH, _blocks[i][j], padNorth, SpringLayout.NORTH, getContentPane());
-                    _layout.putConstraint(SpringLayout.WEST, _blocks[i][j], padWest, SpringLayout.WEST, getContentPane());
+                    add(_blocks[i][j], "pos " + padWest + "px " + padNorth + "px");
                 }
             }
         }
@@ -314,6 +413,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
 
     //This method will pop an announcment about the winning
     private void win() {
+        _timr.stop();
         JOptionPane.showMessageDialog(this, "WOW! YOU WON!");
     }
 
@@ -337,16 +437,24 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         else if(e.getKeyCode()== KeyEvent.VK_UP) {
             dir = Directions.UP;
         }
+        else if (e.getKeyCode() == KeyEvent.VK_Z &&
+                (e.getModifiers() & KeyEvent.CTRL_MASK) != 0){ //if UNDO
+            if (!_moves.isEmpty()) {
+                Move last = _moves.pop();
+                moveBlockBySpecificBlock(last.getOpossiteDir(), last.getBlock(), true);
+            }
+        }
         moveBlockWithEmptyDir(dir);
     }
 
     //If such block with such empty image dir exists, this method will move him to the empty dir
-    public void moveBlockWithEmptyDir(Directions dir) {
-        //TODO: FIX WHOLE LINE IS MOVING INSTEAD OF ONE
+    private void moveBlockWithEmptyDir(Directions dir) {
+        boolean isDone = false;
         for (int i=0; i<_n; i++) {
             for (int j=0; j<_n; j++) {
-                if (_blocks[i][j].getEmptyImgDirection() == dir) {
-                    movePicture(dir, i, j);
+                if (_blocks[i][j].getEmptyImgDirection() == dir && !isDone) {
+                    isDone = true;
+                    movePicture(dir, i, j, false);
                 }
             }
         }
