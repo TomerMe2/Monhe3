@@ -1,6 +1,6 @@
 public class Move {
-    Directions _dir;
-    GameBlock _blk;
+    private Directions _dir;
+    private GameBlock _blk;
 
     public Move(Directions dir, GameBlock blk) {
         _dir = dir;

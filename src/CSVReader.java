@@ -1,12 +1,11 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
 public class CSVReader {
-    private static String csvPath = "";
+    private static String _csvPath = "boards.csv";
 
     //Return a legal permutation
     public static int[][] getPermutation(int n) throws Exception {
@@ -16,7 +15,7 @@ public class CSVReader {
         int indexOfLine = 0;
         int indexOfBoard = -1;
         List<int[][]> lstOfBoard = new LinkedList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(csvPath))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(_csvPath))) {
             while ((line = br.readLine()) != null) {
                 //split the line into an array
                 String[] lineArr = line.split(splitBy);
@@ -48,7 +47,8 @@ public class CSVReader {
             }
             Random rnd = new Random();
             //We will return a random valid board
-            return lstOfBoard.get(rnd.nextInt(lstOfBoard.size()));
+            int indexOfReturnBoard = rnd.nextInt(lstOfBoard.size());
+            return lstOfBoard.get(indexOfReturnBoard);
         }
         catch (Exception e) {
             //We will pass the exception to the frame so we can close the frame correctly

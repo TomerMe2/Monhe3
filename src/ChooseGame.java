@@ -89,7 +89,8 @@ public class ChooseGame extends JFrame implements ActionListener {
         //Locating browse
         layout.putConstraint(SpringLayout.NORTH, browse, 15, SpringLayout.SOUTH, _sonicBtn);
         layout.putConstraint(SpringLayout.WEST, browse, 70, SpringLayout.WEST, _sonicBtn);
-        this.setSize(1200,1200);
+        this.setSize(800,830);
+        this.setResizable(false);
         this.setVisible(true);
     }
 

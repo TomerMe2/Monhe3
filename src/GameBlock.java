@@ -26,16 +26,8 @@ public class GameBlock extends JButton {
         return _isInGame;
     }
 
-    public BufferedImage getBfrdImg() {
-        return _bfrdImg;
-    }
-
     public Directions getEmptyImgDirection() {
         return _emptyImgDir;
-    }
-
-    public void setIndex (int index) {
-        _index = index;
     }
 
     public void setIsInGame (boolean isInGame) {

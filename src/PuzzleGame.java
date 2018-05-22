@@ -33,25 +33,27 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
     private static final int _SHUFFLE_TIMES = 100;
     private int _seconds;
     private int _minutes;
+    private boolean _hasWon;
 
-    public PuzzleGame(int n, URL imagePathURL, int[][] blockPermotation) {
+    public PuzzleGame(int n, URL imagePathURL, int[][] blocksPermutation) {
         super("Puzzelito");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         _layout = new MigLayout();
         getContentPane().setLayout(_layout);
         _n = n;
         detSize();
-        buildBlocks(imagePathURL);
+        boolean isRandomized = blocksPermutation == null;
+        buildBlocks(imagePathURL, isRandomized);
         Image background = getBkrngImg();
         _moves = new Stack<>();
         _moveCounter = 0;
         _moveCounterLbl = new JLabel("Moves: " + _moveCounter);
         _moveCounterLbl.setFont(new Font(_moveCounterLbl.getFont().getName(), _moveCounterLbl.getFont().getStyle(), 30));
-        if (blockPermotation == null) {
+        if (blocksPermutation == null) {
             shuffle();
         }
         else {
-           handleCSVBoard(blockPermotation);
+           handleCSVBoard(blocksPermutation);
         }
         placeButtons();
         placeDirectionsForEmptyImg();
@@ -63,33 +65,39 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         _timr.start();
         add(_moveCounterLbl, "pos 0px 0px");
         add(new JLabel(new ImageIcon(background)), "pos 0px 0px");
-        this.setSize(background.getWidth(this) + _padFromBorders,
-                background.getHeight(this) + 2*_padFromBorders);
+        this.setSize((int) (background.getWidth(this) + 0.25*_padFromBorders),
+                (int) (background.getHeight(this) + 1.5*_padFromBorders));
         this.setResizable(false);
         this.setVisible(true);
         this.setFocusable(true);
         this.addKeyListener(this);
+        _hasWon = false;
+        if (isThereWin()) {   //because it's can be ranodimzed, there's a chance for a win
+            win();
+        }
     }
 
     public void actionPerformed(ActionEvent e) {
-        for (int i=0; i<_n; i++) {
-            for (int j=0; j<_n; j++) {
-                if (_blocks[i][j].getModel().isArmed()) {
-                    if (_blocks[i][j].getEmptyImgDirection() != Directions.NONE) {
-                        //An image with a blank space near it was clicked
-                        //We need to move the image to the blank space
-                        movePicture(_blocks[i][j].getEmptyImgDirection(), i, j, false);
-                        if (isThereWin()) {
-                            win();
+        if (!_hasWon) {
+            for (int i = 0; i < _n; i++) {
+                for (int j = 0; j < _n; j++) {
+                    if (_blocks[i][j].getModel().isArmed()) {
+                        if (_blocks[i][j].getEmptyImgDirection() != Directions.NONE) {
+                            //An image with a blank space near it was clicked
+                            //We need to move the image to the blank space
+                            movePicture(_blocks[i][j].getEmptyImgDirection(), i, j, false);
+                            if (isThereWin()) {
+                                win();
+                            }
                         }
                     }
                 }
             }
-        }
-        if (e.getActionCommand().equals("Undo")) {
-            if (!_moves.isEmpty()) {
-                Move last = _moves.pop();
-                moveBlockBySpecificBlock(last.getOpossiteDir(), last.getBlock(), true);
+            if (e.getActionCommand().equals("Undo")) {
+                if (!_moves.isEmpty()) {
+                    Move last = _moves.pop();
+                    moveBlockBySpecificBlock(last.getOpossiteDir(), last.getBlock(), true);
+                }
             }
         }
         if (e.getActionCommand().equals("Choose Menu")) {
@@ -125,15 +133,42 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
 
     private void handleCSVBoard(int[][] locations) {
         GameBlock[][] tempBlocks = new GameBlock[_n][_n];
+        int iEmpty = 0, jEmpty = 0;
         for (int i=0; i<_n; i++) {
             for (int j=0; j<_n; j++) {
-                tempBlocks[i][j] = locateBlockGivenIndex(locations[i][j]);
+                if (locations[i][j] != 0) {
+                    tempBlocks[i][j] = findBlockGivenIndex(locations[i][j]);
+                }
+                else {
+                    //save the empty locs
+                    iEmpty = i;
+                    jEmpty = j;
+                }
+            }
+        }
+        //After we located everything, we will locate the empty block
+        for (int i=0; i<_n; i++) {
+            for (int j=0; j<_n; j++) {
+                if (!isBlockInArr(_blocks[i][j], tempBlocks)) {
+                    tempBlocks[iEmpty][jEmpty] = _blocks[i][j];
+                    _blocks[i][j].setIsInGame(false);
+                }
             }
         }
         _blocks = tempBlocks;
     }
 
-    private GameBlock locateBlockGivenIndex(int index) {
+    private boolean isBlockInArr(GameBlock blk, GameBlock[][] arr) {
+        for (int i=0; i<_n; i++) {
+            for (int j=0; j<_n; j++) {
+                if (arr[i][j] != null && arr[i][j].equals(blk)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    private GameBlock findBlockGivenIndex(int index) {
         for (int i=0; i<_n; i++) {
             for (int j=0; j<_n; j++) {
                 if (_blocks[i][j].getIndex() == index) {
@@ -289,7 +324,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
     }
 
     //This method builds all the blocks in our board
-    private void buildBlocks(URL absolutePathURL) {
+    private void buildBlocks(URL absolutePathURL, boolean isRandomized) {
         _blocks = new GameBlock[_n][_n];
         Image img = null;
         try {
@@ -308,7 +343,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         Graphics gr = fullBfrd.getGraphics();
         gr.drawImage(img, 0, 0, this);
         gr.dispose();
-        int counter = 0;
+        int counter = 1;
         Random rand = new Random();
         int notInGameIndex = rand.nextInt(_n*_n);
         for (int i=0; i<_n; i++) {
@@ -320,7 +355,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
                 blk.addActionListener(this);
                 _blocks[i][j] = blk;
                 //Pick our missing piece
-                if (notInGameIndex == counter) {
+                if (isRandomized && notInGameIndex == counter) {
                     _blocks[i][j].setIsInGame(false);
                 }
                 counter++;
@@ -362,6 +397,21 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
                 if (_blocks[i][j].getIsInGame()) {
                     //Place the button
                     add(_blocks[i][j], "pos " + padWest + "px " + padNorth + "px");
+                }
+            }
+        }
+    }
+
+    private void placeNotInGameImage() {
+        for (int i=0; i<_n; i++) {
+            for (int j=0; j<_n; j++) {
+                //Calculating the pads from north and west
+                int padNorth = i * (_singleImgSize + _blockMargin) + _padFromBorders;
+                int padWest = j * (_singleImgSize + _blockMargin) + _padFromBorders;
+                if (!_blocks[i][j].getIsInGame()) {
+                    //Place the button
+                    add(_blocks[i][j], "pos " + padWest + "px " + padNorth + "px");
+                    return;
                 }
             }
         }
@@ -411,10 +461,14 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         return true;
     }
 
-    //This method will pop an announcment about the winning
+    //This method will pop an announcment about the winning and handle winning things
     private void win() {
         _timr.stop();
-        JOptionPane.showMessageDialog(this, "WOW! YOU WON!");
+        _hasWon = true;
+        placeNotInGameImage();
+        JOptionPane.showMessageDialog(this, "WOW! YOU WON! \n" +
+            "It took you " + _minutes + " minutes, " + _seconds + " seconds " +
+            "and " + _moveCounter + " moves!");
     }
 
     @Override
@@ -424,6 +478,9 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if (_hasWon) {
+            return;
+        }
         Directions dir = null;
         if(e.getKeyCode()== KeyEvent.VK_RIGHT) {
             dir = Directions.RIGHT;
@@ -445,6 +502,9 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
             }
         }
         moveBlockWithEmptyDir(dir);
+        if (isThereWin()) {
+            win();
+        }
     }
 
     //If such block with such empty image dir exists, this method will move him to the empty dir
