@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -55,8 +56,7 @@ public class MainMenu extends JFrame implements ActionListener {
     private Image getBkrnd() {
         Image bkrnd = null;
         try {
-            bkrnd = ImageIO.read(getClass().getResource("\\Images\\" + _backgroundPath));
-
+            bkrnd = ImageIO.read(new File("Images/" + _backgroundPath));
         }
         catch (IOException e) {
             JOptionPane.showMessageDialog(this, "The program has encountered a critical problem " +

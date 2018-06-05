@@ -1,11 +1,11 @@
 import net.miginfocom.swing.MigLayout;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Random;
@@ -35,7 +35,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
     private int _minutes;
     private boolean _hasWon;
 
-    public PuzzleGame(int n, URL imagePathURL, int[][] blocksPermutation) {
+    public PuzzleGame(int n, String imagePath, int[][] blocksPermutation) {
         super("Puzzelito");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         _layout = new MigLayout();
@@ -43,7 +43,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         _n = n;
         detSize();
         boolean isRandomized = blocksPermutation == null;
-        buildBlocks(imagePathURL, isRandomized);
+        buildBlocks(imagePath, isRandomized);
         Image background = getBkrngImg();
         _moves = new Stack<>();
         _moveCounter = 0;
@@ -182,7 +182,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
     private Image getBkrngImg() {
         Image toReturn = null;
         try {
-            toReturn = ImageIO.read(getClass().getResource("\\Images\\" + _backgroundPath));
+            toReturn = ImageIO.read(new File("Images/" + _backgroundPath));
 
         }
         catch (IOException e) {
@@ -324,11 +324,11 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
     }
 
     //This method builds all the blocks in our board
-    private void buildBlocks(URL absolutePathURL, boolean isRandomized) {
+    private void buildBlocks(String imgPath, boolean isRandomized) {
         _blocks = new GameBlock[_n][_n];
         Image img = null;
         try {
-            img = ImageIO.read(absolutePathURL);
+            img = ImageIO.read(new File(imgPath));
         }
         catch (IOException e) {
             JOptionPane.showMessageDialog(this, "The program has encountered a critical problem " +

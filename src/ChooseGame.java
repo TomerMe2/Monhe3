@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import javax.imageio.ImageIO;
@@ -96,25 +97,25 @@ public class ChooseGame extends JFrame implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         if (_pokemonBtn.getModel().isArmed()) {
-            openPuzzle(getClass().getResource("\\Images\\" + _pokemonPath));
+            openPuzzle("Images/" + _pokemonPath);
         }
         if (_batmanBtn.getModel().isArmed()) {
-            openPuzzle(getClass().getResource("\\Images\\" + _batmanPath));
+            openPuzzle("Images/" + _batmanPath);
         }
         if (_sonicBtn.getModel().isArmed()) {
-            openPuzzle(getClass().getResource("\\Images\\" + _sonicPath));
+            openPuzzle("Images/" + _sonicPath);
         }
         if (_avengersBtn.getModel().isArmed()) {
-            openPuzzle(getClass().getResource("\\Images\\" + _avengersPath));
+            openPuzzle("Images/" + _avengersPath);
         }
         if (e.getActionCommand() == "Browse for your own images") {
             JFileChooser chooser = new JFileChooser();
             chooser.showOpenDialog(this);
             if (chooser.getSelectedFile() != null) {
                 try {
-                    openPuzzle(chooser.getSelectedFile().toURL());
+                    openPuzzle(chooser.getSelectedFile().getPath());
                 }
-                catch (IOException e1) {
+                catch (Exception e1) {
                     JOptionPane.showMessageDialog(this, "There's a problem with your image, " +
                             "please try again");
                 }
@@ -124,7 +125,7 @@ public class ChooseGame extends JFrame implements ActionListener {
     private Image getBkrng() {
         Image bkrnd = null;
         try {
-            bkrnd = ImageIO.read(getClass().getResource("\\Images\\" + _backgroundPath));
+            bkrnd = ImageIO.read(new File("Images/" + _backgroundPath));
 
         }
         catch (IOException e) {
@@ -139,7 +140,7 @@ public class ChooseGame extends JFrame implements ActionListener {
     private JButton buildImageBtn(String imageRelativePath) {
         Image img = null;
         try {
-            img = ImageIO.read(getClass().getResource("\\Images\\" + imageRelativePath));
+            img = ImageIO.read(new File("Images/" + imageRelativePath));
         }
         catch (IOException e) {
             JOptionPane.showMessageDialog(this, "The program has encountered a critical problem " +
@@ -153,7 +154,7 @@ public class ChooseGame extends JFrame implements ActionListener {
         return btn;
     }
 
-    private void openPuzzle(URL imgPath) {
+    private void openPuzzle(String imgPath) {
         int n = 0;
         try {
             n = Integer.parseInt(_txtBxN.getText());
