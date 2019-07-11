@@ -16,5 +16,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="miglayout-4.0-swing" level="project" />
   </component>
 </module>

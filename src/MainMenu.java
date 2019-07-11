@@ -6,13 +6,15 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
+import static java.lang.System.exit;
+
 public class MainMenu extends JFrame implements ActionListener {
 
     private static String _backgroundPath = "Background.jpg";
 
     public MainMenu() {
         super("Puzzle");
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         SpringLayout layout = new SpringLayout();
         getContentPane().setLayout(layout);
         //Load the background
@@ -29,6 +31,9 @@ public class MainMenu extends JFrame implements ActionListener {
         getContentPane().add(startGame);
         getContentPane().add(exit);
         //Add the background
+        if (bkrnd == null) {
+            exit(1);
+        }
         getContentPane().add(new JLabel(new ImageIcon(bkrnd)));
         //Locating puzzelitoLbl
         layout.putConstraint(SpringLayout.NORTH, puzzelitoLbl, 80, SpringLayout.NORTH, getContentPane());
@@ -47,7 +52,7 @@ public class MainMenu extends JFrame implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().equals("Exit")) {
-            exit();
+            exit(0);
         }
         if (e.getActionCommand().equals("Start Puzzelito!")) {
             openGame();
@@ -61,7 +66,7 @@ public class MainMenu extends JFrame implements ActionListener {
         catch (IOException e) {
             JOptionPane.showMessageDialog(this, "The program has encountered a critical problem " +
                     "and will shut down");
-            System.exit(1);
+            exit(1);
             return null; //Wil never execute
         }
         bkrnd = bkrnd.getScaledInstance(600, 600, Image.SCALE_DEFAULT);
@@ -73,9 +78,6 @@ public class MainMenu extends JFrame implements ActionListener {
         btn.setPreferredSize(new Dimension(250, 60));
         btn.addActionListener(this);
         return btn;
-    }
-    private void exit() {
-        System.exit(0);
     }
 
     private void openGame() {

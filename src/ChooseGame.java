@@ -7,6 +7,8 @@ import java.net.URL;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
+import static java.lang.System.exit;
+
 public class ChooseGame extends JFrame implements ActionListener {
 
     private JButton _pokemonBtn, _batmanBtn, _sonicBtn, _avengersBtn;
@@ -21,7 +23,7 @@ public class ChooseGame extends JFrame implements ActionListener {
 
     public ChooseGame() {
         super("Puzzelito");
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         SpringLayout layout = new SpringLayout();
         getContentPane().setLayout(layout);
         //N Label
@@ -52,6 +54,9 @@ public class ChooseGame extends JFrame implements ActionListener {
         grp.add(_rdioRandom);
         //Load the background
         Image bkrnd = getBkrng();
+        if (bkrnd == null) {
+            exit(1);
+        }
         //Adding Jobjects to content pane
         getContentPane().add(nLbl);
         getContentPane().add(_txtBxN);
@@ -108,7 +113,7 @@ public class ChooseGame extends JFrame implements ActionListener {
         if (_avengersBtn.getModel().isArmed()) {
             openPuzzle("Images/" + _avengersPath);
         }
-        if (e.getActionCommand() == "Browse for your own images") {
+        if (e.getActionCommand().equals("Browse for your own images")) {
             JFileChooser chooser = new JFileChooser();
             chooser.showOpenDialog(this);
             if (chooser.getSelectedFile() != null) {
@@ -123,7 +128,7 @@ public class ChooseGame extends JFrame implements ActionListener {
         }
     }
     private Image getBkrng() {
-        Image bkrnd = null;
+        Image bkrnd;
         try {
             bkrnd = ImageIO.read(new File("Images/" + _backgroundPath));
 
@@ -131,7 +136,7 @@ public class ChooseGame extends JFrame implements ActionListener {
         catch (IOException e) {
             JOptionPane.showMessageDialog(this, "The program has encountered a critical problem " +
                     "and will shut down");
-            System.exit(1);
+            exit(1);
             return null; //Will never execute
         }
         bkrnd = bkrnd.getScaledInstance(800, 800, Image.SCALE_DEFAULT);
@@ -145,7 +150,7 @@ public class ChooseGame extends JFrame implements ActionListener {
         catch (IOException e) {
             JOptionPane.showMessageDialog(this, "The program has encountered a critical problem " +
                     "and will shut down");
-            System.exit(1);
+            exit(1);
         }
         img = img.getScaledInstance(200,200,Image.SCALE_DEFAULT);
         JButton btn = new JButton();
@@ -178,14 +183,14 @@ public class ChooseGame extends JFrame implements ActionListener {
     }
 
     private int[][] handleCSVOperation() {
-        int[][] locations = null;
+        int[][] locations;
         try {
             locations = CSVReader.getPermutation(Integer.parseInt(_txtBxN.getText()));
         }
         catch (Exception e) {
             JOptionPane.showMessageDialog(this, "The program has encountered a critical problem " +
                     "and will shut down");
-            System.exit(1);
+            exit(1);
             return null; //Will never execute
         }
         if (locations == null) {

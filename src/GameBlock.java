@@ -3,10 +3,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class GameBlock extends JButton {
-    BufferedImage _bfrdImg;
-    boolean _isInGame;
-    int _index;
-    Directions _emptyImgDir;
+    private BufferedImage _bfrdImg;
+    private boolean _isInGame;
+    private int _index;
+    private Directions _emptyImgDir;
 
     public GameBlock(BufferedImage bfrdImg, int index) {
         super();

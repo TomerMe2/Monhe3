@@ -9,7 +9,7 @@ public class CSVReader {
 
     //Return a legal permutation
     public static int[][] getPermutation(int n) throws Exception {
-        String line = "";
+        String line ;
         String splitBy = ",";
         boolean needRead = false;
         int indexOfLine = 0;

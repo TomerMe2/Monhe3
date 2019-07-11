@@ -7,11 +7,12 @@ import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Random;
 import java.util.Stack;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+
+import static java.lang.System.exit;
 
 public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
 
@@ -37,7 +38,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
 
     public PuzzleGame(int n, String imagePath, int[][] blocksPermutation) {
         super("Puzzelito");
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         _layout = new MigLayout();
         getContentPane().setLayout(_layout);
         _n = n;
@@ -45,6 +46,9 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         boolean isRandomized = blocksPermutation == null;
         buildBlocks(imagePath, isRandomized);
         Image background = getBkrngImg();
+        if (background == null) {
+            exit(1);
+        }
         _moves = new Stack<>();
         _moveCounter = 0;
         _moveCounterLbl = new JLabel("Moves: " + _moveCounter);
@@ -118,16 +122,13 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         _seconds = 0;
         _minutes = 0;
         //Timer itself
-        _timr = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                _seconds++;
-                if (_seconds == 60) {
-                    _seconds = 0;
-                    _minutes++;
-                }
-                _timerLbl.setText(_minutes + ":" + _seconds);
+        _timr = new Timer(1000, e -> {
+            _seconds++;
+            if (_seconds == 60) {
+                _seconds = 0;
+                _minutes++;
             }
+            _timerLbl.setText(_minutes + ":" + _seconds);
         });
     }
 
@@ -180,7 +181,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
     }
 
     private Image getBkrngImg() {
-        Image toReturn = null;
+        Image toReturn;
         try {
             toReturn = ImageIO.read(new File("Images/" + _backgroundPath));
 
@@ -188,7 +189,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         catch (IOException e) {
             JOptionPane.showMessageDialog(this, "The program has encountered a critical problem " +
                     "and will shut down");
-            System.exit(1);
+            exit(1);
             return null; //will never execute
         }
         int backgroundSize = (_n)*(_singleImgSize + _blockMargin);
@@ -333,7 +334,7 @@ public class PuzzleGame extends JFrame implements ActionListener, KeyListener{
         catch (IOException e) {
             JOptionPane.showMessageDialog(this, "The program has encountered a critical problem " +
                     "and will shut down");
-            System.exit(1);
+            exit(1);
         }
         //scale the image to the size that we want
         img = img.getScaledInstance(_wholeImgSize, _wholeImgSize, Image.SCALE_DEFAULT);
